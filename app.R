@@ -10,12 +10,14 @@
 # load in the libraries I need
 library(shiny)
 library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(stringr)
 
 # create some variables here
 
-# BREEDS -- STATIC VALUE
-# go through each file and find the unique breeds
-years = 
+# data <- read_csv("dog_licenses.csv") %>%
+#   mutate(date = as.Date(date, "%Y-%m-%d"))
 
 # ui stuff goes here
 ui <- dashboardPage(
@@ -24,15 +26,78 @@ ui <- dashboardPage(
   ),
   dashboardSidebar(
     
+    # pick a date range (corresponds with the registration active date)
     dateRangeInput(
       inputId = "dates",
       label = "Dates:",
-      start = "2007-01-01",
+      start = "2012-01-01",
       end = Sys.Date(),
-      min = "2007-01-01",
+      min = "2012-01-01",
       max = Sys.Date()
     ),
+
+    selectizeInput(
+      inputId = "types",
+      label = "Type of License:",
+      choices = c(
+        "Neutered Male" = "Dog Individual Neutered Male",
+        "Male" = "Dog Individual Male",
+        "Senior/Disabled Spayed Female" = "Dog Senior Citizen or Disability Spayed Female",
+        "Senior/Disabled Neutered Male" = "Dog Senior Citizen or Disability Neutered Male",
+        "Spayed Female" = "Dog Individual Spayed Female",
+        "Female" = "Dog Individual Female",
+        "Senior/Disabled Male" = "Dog Senior Citizen or Disability Male",
+        "Senior/Disabled Female" = "Dog Senior Citizen or Disability Female",
+        "Inter County Transfer" = "Dog Inter County Transfer",
+        "Inter County Transfer - FREE" = "Dog Inter County Transfer - FREE",
+        "Out of County Transfer - Senior" = "Dog Out of County Transfer - Senior",
+        "Out of County Transfer" = "Dog Out of County Transfer",
+        "Individual License - FREE" = "Dog Individual License - FREE",
+        "Senior/Disabled License - FREE" = "Dog Senior Citizen or Disability - FREE",
+        "Individual License Duplicate" = "Dog Individual License Duplicate",
+        "Senior/Disabled License Duplicate" = "Dog Senior Citizen or Disability Duplicate"
+      ),
+      selected = "Dog Senior Citizen or Disability Duplicate",
+      multiple = TRUE,
+      options = list(create = FALSE)
+    ),
+
+    selectizeInput(
+      inputId = "zip",
+      label = "Owner Zip Code",
+      choices = unique(data$zip),
+      selected = "15205",
+      multiple = TRUE,
+      # selectize = TRUE,
+      options = list(create = FALSE)
+    ),
     
+    checkboxGroupInput(
+      inputId = "breed",
+      label = "Breed:",
+      choices = c(
+        "Labrador Retriever" = "LABRADOR RETRIEVER", 
+        "Golden Retriever" = "GOLDEN RETRIEVER", 
+        "German Shepherd" = "GER SHEPHERD",
+        "Shih Tzu" = "SHIH TZU",
+        "Beagle" = "BEAGLE",
+        "Chihuahua" = "CHIHUAHUA",
+        "American Pit Bull Terrier" = "AM PIT BULL TERRIER",
+        "Yorkshire Terrier" = "YORKSHIRE TERRIER",
+        "Dachsund" = "DACHSHUND",
+        "Boxer" = "BOXER",
+        "Pug" = "PUG",
+        "Cocker Spaniel" = "COCKER SPANIEL",
+        "Bichon Frese" = "BICHON FRISE",
+        "Jack Russell Terrier" = "PARSON RUSSELL TERR",
+        "Maltese" = "MALTESE",
+        "Pomeranian" = "POMERANIAN",
+        "Pembroke Welsh Corgi" = "WELSH CORGI PEMBROK",
+        "Cardigan Welsh Corgi" = "WELSH CORGI CARDIGA",
+        "Brittany Spaniel" = "BRITTANY SPANIEL",
+        "Springer Spaniel" = "SPRINGER SPANIE"
+      )
+    )
     
     
   ),
