@@ -12,6 +12,99 @@ library(tidyverse)
 library(plotly)
 library(shiny)
 library(shinydashboard)
+library(stringr)
+
+data <- read_csv("dog_licenses.csv") %>%
+  mutate(date = as.Date(date))
+
+problems(data)
+
+head(data)
+
+
+data <- readRDS("dog_licenses.rds")
+
+head(data)
+
+
+data <- readRDS("dog_licenses.rds") %>%
+  mutate(month_start = as.Date(date, "%Y-%m-%d"))
+
+
+
+
+data = "data/allegheny_county_dog_licenses_2015.csv" %>% 
+  read_csv()
+
+
+head(data)
+
+
+
+data %>%
+  group_by(Breed) %>%
+  summarize(n = n()) %>%
+  arrange(desc(n)) %>%
+  print(n = 25)
+  # ungroup() %>% 
+  # filter(breed %in% c("BEAGLE", "CHIHUAHUA", "WELSH CORGI PEMBROK",
+  #                     "WELSH CORGI CARDIGA", "MIXED"))
+
+
+# 
+# types = list()
+# 
+get_types = function(year) {
+  dir("data", pattern = paste(year), full.names = TRUE)   %>%
+    read_csv() %>%
+    unique(df[c("OwnerZip")])
+}
+
+get_types(2010)
+
+for (i in years) {
+  print(get_types(i))
+}
+
+
+
+years = list(2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023)
+
+for (i in years) {
+  df = 'data/allegheny_county_dog_licenses_2022.csv' %>%
+    read_csv()
+  
+  # head(df)
+  
+  unique(df[c("OwnerZip")])
+}
+
+
+file.names <- list.files(path = "data", recursive = TRUE,
+                         pattern = "\\.csv$", full.names = TRUE)
+
+file.names
+
+
+mylist <- list()
+
+for(i in 1:length(file.names)){
+  print(i)
+  df <- read.csv(file.names[i], sep=",", stringsAsFactors=FALSE)
+  listtmp = unique(df[c("OwnerZip")])
+  for (zip in listtmp) {
+    mylist <- append(mylist, zip)
+  }
+  # mylist <- append(mylist, list(listtmp))
+}
+
+df = unique(mylist)
+
+head(df)
+
+
+newlist = unique(df[c("OwnerZip")])
+
 
 mybreeds = c("BEAGLE", "CHIHUAHUA", "WELSH CORGI PEMBROK",
          "WELSH CORGI CARDIGA", "MIXED")
