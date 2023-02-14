@@ -1,0 +1,218 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+# load in the libraries I need
+library(tidyverse)
+library(plotly)
+library(shiny)
+library(shinydashboard)
+
+mybreeds = c("BEAGLE", "CHIHUAHUA", "WELSH CORGI PEMBROK",
+         "WELSH CORGI CARDIGA", "MIXED")
+
+# function to be used later...
+get_file = function(year){
+  dir("data", pattern = paste(year), full.names = TRUE)   %>%
+    read_csv() %>%
+    select(
+      type = LicenseType,
+      breed = Breed,
+      color = Color,
+      name = DogName,
+      zip = OwnerZip, 
+      year = ExpYear, 
+      date = ValidDate
+    ) %>%
+    # filter by the breed that the user (eventually) selects...
+    # except "mybreeds" is static for now.
+    filter(breed %in% mybreeds)
+}
+
+# important that this is a list, even if it's a list containing only one value.
+# input = list(
+#   year = 2013,
+#   year = 2014
+# )
+
+input = c(2013, 2014)
+
+# okay, so this reads in the year(s) that the "user" input and filters out the relevant data.
+head(get_file(year = input$year))
+tail(get_file(year = input$year))
+
+
+
+# mybreeds = c("BEAGLE")
+# 
+# years = c(2007)
+# 
+# for(i in years){
+#   print(get_file(2007))
+# }
+
+# data = "data/allegheny_count_dog_licenses_2015.csv" %>% read_csv()
+
+# data = "data/allegheny_county_dog_licenses_2015.csv" %>%
+#   read_csv() %>%
+#   select(
+#     type = LicenseType,
+#     breed = Breed,
+#     color = Color,
+#     name = DogName,
+#     zip = OwnerZip,
+#     year = ExpYear,
+#     date = ValidDate
+#   ) %>%
+#   # filter by the breed that the user (eventually) selects...
+#   # except "mybreeds" is static for now.
+#   filter(breed %in% mybreeds)
+
+
+
+
+# Get a bunch of paths
+# paths = dir("data", full.names = TRUE)
+# 
+# print(paths)
+
+# # function to be used later...
+# get_file = function(year){
+#   dir("data", pattern = paste(year), full.names = TRUE)   %>%
+#     read_csv() %>%
+#     select(
+#       type = LicenseType,
+#       breed = Breed,
+#       color = Color,
+#       name = DogName,
+#       zip = OwnerZip, 
+#       year = ExpYear, 
+#       date = ValidDate
+#     ) %>%
+#     # filter by the breed that the user (eventually) selects...
+#     # except "mybreeds" is static for now.
+#     filter(breed %in% mybreeds)
+# }
+
+# # important that this is a list, even if it's a list containing only one value.
+# input = list(
+#   year = 2013
+# )
+# 
+# # okay, so this reads in the year(s) that the "user" input and filters out the relevant data.
+# get_file(year = input$year)
+
+print(Sys.Date())
+
+# # Example Function
+# for(i in 1:10){
+#   paths[i] %>% read_csv() %>% head() %>% print()
+# }
+
+
+# selectInput(
+#   #  choices = c("Tim" = "tim", "Matt" = "matt")
+#   choices = c("2012" = "data/.........2012.csv", ...)
+# )
+
+# get_file = function(year){
+#   dir("data", pattern = paste(year), full.names = TRUE)   %>%
+#     read_csv() %>%
+#     select(type = LicenseType, breed = Breed, color = Color, name = DogName, 
+#            zip = OwnerZip, year = ExpYear, date = ValidDate) %>%
+#     filter(breed %in% mybreeds)
+# }
+
+# input = list(
+#   year = 2012
+# )
+# 
+# get_file(year = input$year)
+# 
+# c(2002, 2003, 2004)
+# 2002:2004
+# c(2002:2004)
+
+# superdata = 2010:2017 %>%
+#   map_dfr(~get_file(year = .))
+# 
+# superdata %>% head()
+# superdata %>% tail()
+# 
+# superdata %>% saveRDS("data.rds")
+# superdata %>% write_csv("data.csv")
+# 
+# read_rds("data.rds") %>% system.time()
+# read_csv("data.csv") %>% system.time()
+# 
+# 
+# tally = read_rds("data.rds") %>%
+#   group_by(year, breed)   %>%
+#   summarize(n = n()) %>%
+#   mutate(text = paste(
+#     "<b>", year, "</b>",
+#     "<br>",
+#     "<i>", breed, "</i>", n))
+# 
+# gg = ggplot() +
+#   geom_line(
+#     data = tally,
+#     mapping = aes(
+#       x = year, y = n,
+#       group = breed, color = breed,
+#       text = text)) 
+# 
+# ggplotly(gg, tooltip = "text")
+
+
+
+
+
+
+
+data %>%
+  group_by(breed) %>%
+  summarize(n = n()) %>%
+  ungroup() %>% 
+  filter(breed %in% c("BEAGLE", "CHIHUAHUA", "WELSH CORGI PEMBROK",
+                      "WELSH CORGI CARDIGA", "MIXED"))
+arrange(desc(n))
+
+data %>%
+  group_by(breed, zip) %>%
+  summarize(n = n()) %>%
+  ungroup()
+
+
+
+data %>% 
+  filter(breed == "")
+
+# data %>%
+#   group_by(breed, zip) %>%
+#   mutate(n = n()) %>%
+#   ungroup
+
+
+
+# ui stuff goes here
+ui <- dashboardPage(
+  dashboardHeader(),
+  dashboardSidebar(),
+  dashboardBody()
+)
+
+server <- function(input, output) {
+  # TBD
+}
+
+# run the application 
+shinyApp(ui = ui, server = server)
+
+
+
