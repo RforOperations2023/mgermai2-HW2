@@ -13,31 +13,114 @@ library(plotly)
 library(shiny)
 library(shinydashboard)
 library(stringr)
+library(dplyr)
+library(lubridate)
+library(vroom)
 
+# https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
 data <- read_csv("dog_licenses.csv") %>%
-  mutate(date = as.Date(date))
+  mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
+  mutate(reg_year = lubridate::year(reg_date))
 
-problems(data)
+input = list(
+  # Date thresholds
+  dates = c("2012-01-01", "2019-12-31"),
+  top = 5,
+  zip = c(15205),
+  type = c("Dog Individual Spayed Female", "Dog Individual Neutered Male"),
+  breed = c("BEAGLE", "LABRADOR RETRIEVER")
+)
 
-head(data)
+output = list()
+
+# gets counts of breeds throughout the county over time
+dhat <- data %>%
+  filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+  # filter(zip %in% input$zip) %>%
+  filter(breed %in% input$breed) %>%
+  arrange(reg_year) %>%
+  group_by(reg_year, breed) %>%
+  summarize(n = n()) %>%
+  rename("num_dogs" = n)
+  
+  
+
+# maybe make a new graph for each zip code?
+# this will get the top x breeds over a period of time in a single zip code
+dhat2 <- data %>%
+  filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+  filter(zip %in% input$zip) %>%
+  group_by(reg_year, breed) %>%
+  summarise(n = n()) %>%
+  rename("num_dogs" = n) %>%
+  slice_max(order_by = num_dogs, n = input$top)
+  
+
+# gets the count of types of licenses throughout the county over time
+dhat3 <- data %>%
+  filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+  filter(type %in% input$type) %>%
+  group_by(reg_year, type) %>%
+  summarize(n = n()) %>%
+  rename("num_licenses" = n)
+
+  
 
 
-data <- readRDS("dog_licenses.rds")
+group_by(reg_year, zip, breed, num_dogs)
+  # arrange(desc(num_dogs)) %>%
+  # ungroup() %>%
+  # group_by(reg_year, zip, breed) %>%
+  slice_max(order_by = num_dogs, n = 5)
+  # ungroup()
+  
+  # ungroup() %>%
+  
+  # group_by(reg_year, zip, breed) %>%
+  slice(1:input$top)
 
-head(data)
+  
+  # filter(breed %in% input$breed) %>%
+  arrange(reg_year) %>%
+  group_by(reg_year, breed) %>%
+  count() %>%
+  rename("num_dogs" = n)
+
+  
+  
+# %>%
+#   count(reg_year)
+  # group_by(calendar_year = lubridate::floor_date(date, "year")) %>%
+  # summarise(breed=n())
 
 
-data <- readRDS("dog_licenses.rds") %>%
-  mutate(month_start = as.Date(date, "%Y-%m-%d"))
+
+%>%
+  # mutate(id = paste(route, day_type, sep = "-")) %>%
+  select(date, zip, breed)
 
 
-
-
-data = "data/allegheny_county_dog_licenses_2015.csv" %>% 
-  read_csv()
-
-
-head(data)
+# problems(data)
+# 
+# head(data)
+# 
+# 
+# data <- readRDS("dog_licenses.rds")
+# 
+# head(data)
+# 
+# 
+# data <- readRDS("dog_licenses.rds") %>%
+#   mutate(month_start = as.Date(date, "%Y-%m-%d"))
+# 
+# 
+# 
+# 
+# data = "data/allegheny_county_dog_licenses_2015.csv" %>% 
+#   read_csv()
+# 
+# 
+# head(data)
 
 
 
