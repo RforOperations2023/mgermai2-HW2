@@ -92,6 +92,16 @@ ui <- dashboardPage(
         options = list(create = FALSE)
       ),
       
+      numericInput(
+        inputId = "top",
+        label = "Top X Breeds",
+        value = 2,
+        min = 1,
+        max = 5,
+        step = 1
+        # width = NULL
+      ),
+      
       selectizeInput(
         inputId = "zip",
         label = "Owner Zip Code",
@@ -159,7 +169,21 @@ ui <- dashboardPage(
       
       tabItem(
         tabName = "plot2",
-        h2("Plot #2")
+        h2("Plot #2"),
+        fluidRow(
+          box(
+            title = h3(strong("Top Dog Breeds")),
+            wdith = 12,
+            br(),
+            # need value box output here
+          )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            plotOutput("topXDogs")
+          )
+        )
       ),
       
       tabItem(
@@ -184,6 +208,7 @@ server <- function(input, output) {
   # 3. Count of individual types of licenses over time -- line graph
   #    (user selects the years and the types of licenses)
   
+  # first data set
   dhat <- reactive({
     result = data %>%
       filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
@@ -196,9 +221,20 @@ server <- function(input, output) {
     print("---dhat"); return(result);
   })
   
+  # second data set
+  dhat2 <- reactive({
+    result = data %>%
+      filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+      filter(zip %in% input$zip) %>%
+      group_by(reg_year, breed) %>%
+      summarise(n = n()) %>%
+      rename("num_dogs" = n) %>%
+      slice_max(order_by = num_dogs, n = input$top)
+    print("---dhat2"); return(result);
+  })
+  
   
   output$licensesByBreed <- renderPlot({
-    
     dhat() %>%
       ggplot(
         mapping = aes(
@@ -212,6 +248,30 @@ server <- function(input, output) {
       geom_line(alpha = 0.5) + 
       geom_point(alpha = 0.5) +
       ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  output$topXDogs <- renderPlot({
+    dhat2() %>%
+      ggplot(
+        mapping = aes(
+          x = reg_year, 
+          y = num_dogs, 
+          # would definitely be helpful to change the color so it's easier to read
+          fill = breed,
+        )
+      ) +
+      xlab("Year of License Registration") +
+      ylab("Number of Individual Dogs") +
+      geom_bar(
+        alpha = 0.5,
+        stat = "identity",
+        # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
+        position = position_dodge()
+      ) + 
+      # geom_point(alpha = 0.5) +
+      # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
+      ggtitle(paste(str_interp("Top 'X' Dog Breeds By Registration Over Time"))) +
       theme(plot.title = element_text(hjust = 0.5))
   })
   
