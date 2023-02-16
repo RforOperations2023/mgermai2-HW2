@@ -26,10 +26,12 @@ data <- read_csv("dog_licenses.csv") %>%
 
 # ui stuff goes here
 ui <- dashboardPage(
+  
   dashboardHeader(
     title = "Allegheny County Dog Licenses",
     titleWidth = 300
   ),
+  
   dashboardSidebar(
     
     sidebarMenu(
@@ -37,19 +39,19 @@ ui <- dashboardPage(
       id = "tabs",
       
       menuItem(
-        "Plot #1", 
+        "Individual Breeds", 
         tabName = "plot1",
         icon = icon("chart-column")
       ),
       
       menuItem(
-        "Plot #2", 
+        "Top Breeds by Zip Code", 
         tabName = "plot2",
         icon = icon("chart-column")
       ),
       
       menuItem(
-        "Plot #3", 
+        "Licenses", 
         tabName = "plot3",
         icon = icon("chart-column")
       ),
@@ -149,7 +151,7 @@ ui <- dashboardPage(
       
       tabItem(
         tabName = "plot1",
-        h2("Plot #1"),
+        h2("Individual Breeds"),
         fluidRow(
           box(
             title = h3(strong("Dog Licenses by Breed Over Time")),
@@ -161,14 +163,14 @@ ui <- dashboardPage(
         fluidRow(
           box(
             width = 12,
-            plotOutput("licensesByBreed")
+            plotlyOutput("licensesByBreed")
           )
         )
       ),
       
       tabItem(
         tabName = "plot2",
-        h2("Plot #2"),
+        h2("Top Breeds By Zip Code"),
         fluidRow(
           box(
             title = h3(strong("Top Dog Breeds")),
@@ -180,14 +182,14 @@ ui <- dashboardPage(
         fluidRow(
           box(
             width = 12,
-            plotOutput("topXDogs")
+            plotlyOutput("topXDogs")
           )
         )
       ),
       
       tabItem(
         tabName = "plot3",
-        h2("Plot #3"),
+        h2("Licenses"),
         fluidRow(
           box(
             title = h3(strong("Top Dog Licenses (by Type)")),
@@ -199,7 +201,7 @@ ui <- dashboardPage(
         fluidRow(
           box(
             width = 12,
-            plotOutput("topLicenses")
+            plotlyOutput("topLicenses")
           )
         )
       )
@@ -258,80 +260,102 @@ server <- function(input, output) {
   })
   
   
-  output$licensesByBreed <- renderPlot({
-    dhat() %>%
-      ggplot(
-        mapping = aes(
-          x = reg_year, 
-          y = num_dogs, 
-          color = breed,
-        )
-      ) +
-      labs(
-        x = "Year of License Registration",
-        y = "Number of Individual Dogs",
-        color = "Breed of Dog"
-      ) +
-      scale_color_brewer(palette = "Set1") + 
-      geom_line(alpha = 0.5) + 
-      geom_point(alpha = 0.5) +
-      ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
-      theme(plot.title = element_text(hjust = 0.5))
+  output$licensesByBreed <- renderPlotly({
+    ggplotly(
+      dhat() %>%
+        ggplot(
+          mapping = aes(
+            x = reg_year, 
+            y = num_dogs, 
+            color = breed,
+          )
+        ) +
+        labs(
+          x = "Year of License Registration",
+          y = "Number of Individual Dogs",
+          color = "Breed of Dog"
+        ) +
+        # scale_x_date(
+        #   NULL,
+        #   breaks = scales::breaks_width("2 years"), 
+        #   labels = scales::label_date("'%y")
+        # ) + 
+        scale_color_brewer(palette = "Set1") + 
+        geom_line(alpha = 0.5) + 
+        geom_point(alpha = 0.5) +
+        ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
+        theme(plot.title = element_text(hjust = 0.5))
+    )
   })
   
   
-  output$topXDogs <- renderPlot({
-    dhat2() %>%
-      ggplot(
-        mapping = aes(
-          x = reg_year, 
-          y = num_dogs,
-          fill = breed
-        )
-      ) +
-      labs(
-        x = "Year of License Registration",
-        y = "Number of Individual Dogs",
-        fill = "Breed of Dog"
-      ) +
-      scale_color_brewer(palette = "Set1") + 
-      geom_bar(
-        alpha = 0.5,
-        stat = "identity",
-        # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
-        position = position_dodge()
-      ) + 
-      # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-      ggtitle(paste(str_interp("Top 'X' Dog Breeds By License Registration in Allegheny County Over Time"))) +
-      theme(plot.title = element_text(hjust = 0.5))
+  output$topXDogs <- renderPlotly({
+    ggplotly(
+      dhat2() %>%
+        ggplot(
+          mapping = aes(
+            x = reg_year, 
+            y = num_dogs,
+            fill = breed
+          )
+        ) +
+        labs(
+          x = "Year of License Registration",
+          y = "Number of Individual Dogs",
+          fill = "Breed of Dog"
+        ) +
+        # scale_x_date(
+        #   NULL,
+        #   breaks = scales::breaks_width("2 years"), 
+        #   labels = scales::label_date("'%y")
+        # ) + 
+        scale_color_brewer(palette = "Set1") + 
+        geom_bar(
+          alpha = 0.5,
+          stat = "identity",
+          # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
+          position = position_dodge()
+        ) + 
+        # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
+        ggtitle(paste(str_interp("Top 'X' Dog Breeds By License Registration in Allegheny County Over Time"))) +
+        theme(plot.title = element_text(hjust = 0.5))
+    )
   })
   
   
-  output$topLicenses <- renderPlot({
-    dhat3() %>%
-      ggplot(
-        mapping = aes(
-          x = reg_year, 
-          y = num_licenses,
-          fill = type
-        )
-      ) +
-      # https://www.geeksforgeeks.org/how-to-change-legend-title-in-ggplot2-in-r/
-      labs(
-        x = "Year of License Registration",
-        y = "Number of Licenses",
-        fill = "Type of Dog License"
-      ) +
-      scale_color_brewer(palette = "Set1") + 
-      geom_bar(
-        alpha = 0.5,
-        stat = "identity",
-        # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
-        position = position_dodge()
-      ) + 
-      # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-      ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
-      theme(plot.title = element_text(hjust = 0.5))
+  output$topLicenses <- renderPlotly({
+    ggplotly(
+      dhat3() %>%
+        ggplot(
+          mapping = aes(
+            x = reg_year, 
+            y = num_licenses,
+            fill = type
+          )
+        ) +
+        # https://www.geeksforgeeks.org/how-to-change-legend-title-in-ggplot2-in-r/
+        labs(
+          x = "Year of License Registration",
+          y = "Number of Licenses",
+          fill = "Type of Dog License"
+        ) +
+        # scale_x_date(
+        #   NULL,
+        #   breaks = scales::breaks_width("2 years"), 
+        #   labels = scales::label_date("'%y")
+        # ) + 
+        scale_color_brewer(palette = "Set1") + 
+        geom_bar(
+          alpha = 0.5,
+          stat = "identity",
+          # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
+          position = position_dodge()
+        ) + 
+        # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
+        ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
+        theme(plot.title = element_text(hjust = 0.5))
+      
+    )
   })
   
 }
