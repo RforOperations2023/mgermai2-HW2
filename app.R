@@ -7,6 +7,23 @@
 #    http://shiny.rstudio.com/
 #
 
+####################################
+
+# To Do:
+#   Add in three numeric-based boxes/gauges.
+#   Try adding in scales to plots.
+#   Update README.
+#   Verify that data tables utilize reactivity.
+#   Refactor if there's time.
+#   Make sure .gitignore is working.
+#   Add descriptive comments, etc.
+#   Add in "Add S" function, like before.
+#   Add in Dynamic titles to graphs (zip code, etc)
+  
+####################################
+
+
+
 # load in the libraries I need
 library(shiny)
 library(shinydashboard)
@@ -29,6 +46,7 @@ data <- read_csv("dog_licenses.csv") %>%
 # ui stuff goes here
 ui <- dashboardPage(
   
+  # the title/heading that appears in the upper left of the app
   dashboardHeader(
     title = "Allegheny County Dog Licenses",
     titleWidth = 300
@@ -40,23 +58,33 @@ ui <- dashboardPage(
       
       id = "tabs",
       
+      # the first "page" of the app, seen in the upper left of the app
+      # it corresponds with the tabItem that has the same tabName value as this one.
       menuItem(
         "Individual Breeds", 
         tabName = "plot1",
         icon = icon("chart-column")
       ),
       
+      # the second "page" of the app, seen in the upper left of the app
+      # it corresponds with the tabItem that has the same tabName value as this one.
       menuItem(
         "Top Breeds by Zip Code", 
         tabName = "plot2",
         icon = icon("chart-column")
       ),
       
+      # the third "page" of the app, seen in the upper left of the app
+      # it corresponds with the tabItem that has the same tabName value as this one
       menuItem(
         "Licenses", 
         tabName = "plot3",
         icon = icon("chart-column")
       ),
+      
+      ################################
+      ###  USER INPUTS BEGIN HERE  ###
+      ################################
       
       # pick a date range (corresponds with the registration active date)
       dateRangeInput(
@@ -68,6 +96,7 @@ ui <- dashboardPage(
         max = Sys.Date()
       ),
       
+      # pick a type of dog license
       selectizeInput(
         inputId = "type",
         label = "Type of License:",
@@ -94,6 +123,7 @@ ui <- dashboardPage(
         options = list(create = FALSE)
       ),
       
+      # pick how many breeds to display at one time
       numericInput(
         inputId = "top",
         label = "Top X Breeds",
@@ -105,16 +135,19 @@ ui <- dashboardPage(
         # width = NULL
       ),
       
-      selectizeInput(
+      # pick a zip code, or two, or three, or...
+      # might remove later
+      selectInput(
         inputId = "zip",
         label = "Owner Zip Code",
         choices = unique(data$zip),
         selected = "15205",
-        multiple = TRUE,
+        # multiple = TRUE,
         # selectize = TRUE,
-        options = list(create = FALSE)
+        # options = list(create = FALSE)
       ),
       
+      # pick some breeds
       checkboxGroupInput(
         inputId = "breed",
         label = "Breed:",
@@ -151,9 +184,22 @@ ui <- dashboardPage(
     
     tabItems(
       
+      # this is what the user sees when they click on the "Individual Breeds" tab
       tabItem(
+        
         tabName = "plot1",
+        
+        # first row is the name of the page
         h2("Individual Breeds"),
+        
+        # second row is value boxes, value boxes go here
+        fluidRow(
+          valueBoxOutput("mostPopularBreed1"),
+          valueBoxOutput("mostPopularBreed2"),
+          valueBoxOutput("mostPopularBreed3")
+        ),
+        
+        # here's another box, blank for now.
         fluidRow(
           box(
             title = h3(strong("Dog Licenses by Breed Over Time")),
@@ -162,16 +208,19 @@ ui <- dashboardPage(
             # need value box output here
           )
         ),
+        
+        # third row is the actual plot
         fluidRow(
           box(
             width = 12,
             plotlyOutput("licensesByBreed")
           )
         ),
+        
+        # fourth row is the data table corresponding to the plot
         fluidRow(
           box(
             width = 12,
-            # data table stuff
             DT::dataTableOutput(
               outputId = "licensesByBreedTable",
             ),
@@ -179,9 +228,15 @@ ui <- dashboardPage(
         )
       ),
       
+      # this is what the user sees when they click on the "Top Breeds by Zip Code" tab
       tabItem(
+        
         tabName = "plot2",
+        
+        # first row is the name of the page
         h2("Top Breeds By Zip Code"),
+        
+        # second row is value boxes, value boxes go here
         fluidRow(
           box(
             title = h3(strong("Top Dog Breeds")),
@@ -190,16 +245,19 @@ ui <- dashboardPage(
             # need value box output here
           )
         ),
+        
+        # third row is the actual plot
         fluidRow(
           box(
             width = 12,
             plotlyOutput("topXDogs")
           )
         ),
+        
+        # fourth row is the data table corresponding to the plot
         fluidRow(
           box(
             width = 12,
-            # data table stuff
             DT::dataTableOutput(
               outputId = "topXDogsTable",
             ),
@@ -207,9 +265,15 @@ ui <- dashboardPage(
         )
       ),
       
+      # this is what the user sees when they click on the "Licenses" tab
       tabItem(
+        
         tabName = "plot3",
+        
+        # first row is the name of the page
         h2("Licenses"),
+        
+        # second row is value boxes, value boxes go here
         fluidRow(
           box(
             title = h3(strong("Top Dog Licenses (by Type)")),
@@ -218,25 +282,28 @@ ui <- dashboardPage(
             # need value box output here
           )
         ),
+        
+        # third row is the actual plot
         fluidRow(
           box(
             width = 12,
             plotlyOutput("topLicenses")
           )
         ),
+        
+        # fourth row is the data table corresponding to the plot
         fluidRow(
           box(
             width = 12,
             # data table stuff
             DT::dataTableOutput(
-              outputId = "licensesTable",
+              outputId = "licenseTable",
             ),
           )
         )
+        
       )
-      
     )
-    
   )
 )
 
@@ -264,18 +331,20 @@ server <- function(input, output) {
       rename("num_dogs" = n)
     print("---dhat"); return(result);
   })
+
   
   # second data set
   dhat2 <- reactive({
     result = data %>%
       filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
-      filter(zip %in% input$zip) %>%
+      filter(zip == input$zip) %>%
       group_by(reg_year, breed) %>%
       summarise(n = n()) %>%
       rename("num_dogs" = n) %>%
       slice_max(order_by = num_dogs, n = input$top)
     print("---dhat2"); return(result);
   })
+  
   
   # third data set
   dhat3 <- reactive({
@@ -356,7 +425,7 @@ server <- function(input, output) {
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
-  
+
   
   # outputs the data table corresponding to the third plot
   output$topXDogsTable = DT::renderDataTable({
@@ -400,11 +469,37 @@ server <- function(input, output) {
   
   
   # outputs the data table corresponding to the third plot
-  output$licensesTables = DT::renderDataTable({
+  output$licenseTable = DT::renderDataTable({
     DT::datatable(data = dhat3())
   })
   
-  
+  # the exact same box repeated three times, I know.
+  # but this is a placeholder for now.
+  # I'll probably make them static values of all-time most popular breed, year, and num_dogs
+  output$mostPopularBreed1 <- renderValueBox(
+    valueBox(
+      paste0(input$breed),
+      "Breed",
+      icon = icon("list"),
+      color = "purple"
+    )
+  )
+  output$mostPopularBreed2 <- renderValueBox(
+    valueBox(
+      paste0(input$breed),
+      "Breed",
+      icon = icon("list"),
+      color = "purple"
+    )
+  )
+  output$mostPopularBreed3 <- renderValueBox(
+    valueBox(
+      paste0(input$breed),
+      "Breed",
+      icon = icon("list"),
+      color = "purple"
+    )
+  )
 }
 
 # run the application 

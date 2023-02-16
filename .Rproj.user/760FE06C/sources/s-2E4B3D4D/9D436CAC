@@ -12,13 +12,13 @@
     "properties": {
         "expression": "dhat2",
         "caption": "dhat2",
-        "totalObservations": "17",
-        "displayedObservations": "17",
-        "variables": "3",
-        "cacheKey": "B485C335",
+        "totalObservations": "43",
+        "displayedObservations": "43",
+        "variables": "4",
+        "cacheKey": "D2690C8B",
         "object": "dhat2",
         "environment": "",
-        "contentUrl": "grid_resource/gridviewer.html?env=&obj=dhat2&cache_key=B485C335&max_cols=50",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=dhat2&cache_key=D2690C8B&max_cols=50",
         "preview": "0",
         "source_window_id": "",
         "Source": "Source"

@@ -3,7 +3,7 @@
     "path": "~/Desktop/r-for-operations-2023/mgermai2-HW2/app.R",
     "project_path": "app.R",
     "type": "r_source",
-    "hash": "3183009935",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1676517605765.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "402,23",
-        "scrollLine": "390"
+        "cursorPosition": "198,43",
+        "scrollLine": "177"
     },
     "folds": "",
-    "lastKnownWriteTime": 1676525620,
+    "lastKnownWriteTime": 1676578318,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1676525620622,
+    "last_content_update": 1676578318079,
     "read_only": false,
     "read_only_alternatives": []
 }

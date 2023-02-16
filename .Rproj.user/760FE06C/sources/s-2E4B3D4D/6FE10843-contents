@@ -25,7 +25,7 @@ data <- read_csv("./dog_licenses.csv") %>%
 input = list(
   # Date thresholds
   dates = c("2012-01-01", "2019-12-31"),
-  top = 2,
+  top = 5,
   zip = c(15205),
   type = c("Dog Individual Spayed Female", "Dog Individual Neutered Male"),
   breed = c("BEAGLE", "LABRADOR RETRIEVER")
@@ -43,14 +43,29 @@ dhat <- data %>%
   summarize(n = n()) %>%
   rename("num_dogs" = n)
   
+
+dhatZip <- data %>%
+  filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+  filter(zip %in% input$zip) %>%
+  group_by(zip, reg_year, breed) %>%
+  summarise(n = n()) %>%
+  rename("num_dogs" = n) %>%
+  slice_max(order_by = num_dogs, n = input$top)
   
+for (zipCode in input$zip) {
+  newData <- dhatZip %>%
+    filter(zip == zipCode)
+  print(newData)
+}
+
+print(input$zip)
 
 # maybe make a new graph for each zip code?
 # this will get the top x breeds over a period of time in a single zip code
 dhat2 <- data %>%
   filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
   filter(zip %in% input$zip) %>%
-  group_by(reg_year, breed) %>%
+  group_by(zip, reg_year, breed) %>%
   summarise(n = n()) %>%
   rename("num_dogs" = n) %>%
   slice_max(order_by = num_dogs, n = input$top)
