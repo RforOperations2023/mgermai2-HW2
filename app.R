@@ -32,6 +32,7 @@ library(plotly)
 library(stringr)
 library(ggplot2)
 library(shinythemes)
+# https://www.tutorialspoint.com/how-to-create-the-bar-chart-with-ggplot2-using-color-brewer-in-r
 library(RColorBrewer)
 library(scales)
 library(DT)
@@ -42,6 +43,28 @@ library(DT)
 data <- read_csv("dog_licenses.csv") %>%
   mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
   mutate(reg_year = lubridate::year(reg_date))
+
+
+yearWithMostRegistrations <- data %>%
+  group_by(reg_year) %>%
+  summarize(n = n()) %>%
+  rename("num_dogs" = n) %>%
+  slice_max(num_dogs)
+
+
+mostPopularLicense <- data %>%
+  group_by(type) %>%
+  summarize(n = n()) %>%
+  rename("num_licenses" = n) %>%
+  slice_max(num_licenses)
+
+
+mostPopularBreed <- data %>%
+  group_by(breed) %>%
+  summarize(n = n()) %>%
+  rename("num_dogs" = n) %>%
+  slice_max(num_dogs)
+
 
 # ui stuff goes here
 ui <- dashboardPage(
@@ -171,7 +194,7 @@ ui <- dashboardPage(
           "Pembroke Welsh Corgi" = "WELSH CORGI PEMBROK",
           "Cardigan Welsh Corgi" = "WELSH CORGI CARDIGA",
           "Brittany Spaniel" = "BRITTANY SPANIEL",
-          "Springer Spaniel" = "SPRINGER SPANIE"
+          "English Springer Spaniel" = "ENG SPRINGER SPANIE"
         ),
         selected = "BEAGLE"
       )
@@ -190,23 +213,13 @@ ui <- dashboardPage(
         tabName = "plot1",
         
         # first row is the name of the page
-        h2("Individual Breeds"),
+        h2("Individual Breeds Breakdown"),
         
         # second row is value boxes, value boxes go here
         fluidRow(
           valueBoxOutput("mostPopularBreed1"),
           valueBoxOutput("mostPopularBreed2"),
           valueBoxOutput("mostPopularBreed3")
-        ),
-        
-        # here's another box, blank for now.
-        fluidRow(
-          box(
-            title = h3(strong("Dog Licenses by Breed Over Time")),
-            wdith = 12,
-            br(),
-            # need value box output here
-          )
         ),
         
         # third row is the actual plot
@@ -236,16 +249,6 @@ ui <- dashboardPage(
         # first row is the name of the page
         h2("Top Breeds By Zip Code"),
         
-        # second row is value boxes, value boxes go here
-        fluidRow(
-          box(
-            title = h3(strong("Top Dog Breeds")),
-            wdith = 12,
-            br(),
-            # need value box output here
-          )
-        ),
-        
         # third row is the actual plot
         fluidRow(
           box(
@@ -273,15 +276,12 @@ ui <- dashboardPage(
         # first row is the name of the page
         h2("Licenses"),
         
-        # second row is value boxes, value boxes go here
-        fluidRow(
-          box(
-            title = h3(strong("Top Dog Licenses (by Type)")),
-            wdith = 12,
-            br(),
-            # need value box output here
-          )
-        ),
+        # # second row is value boxes, value boxes go here
+        # fluidRow(
+        #   valueBoxOutput("mostPopularBreed1"),
+        #   valueBoxOutput("mostPopularBreed2"),
+        #   valueBoxOutput("mostPopularBreed3")
+        # ),
         
         # third row is the actual plot
         fluidRow(
@@ -413,15 +413,15 @@ server <- function(input, output) {
         #   breaks = scales::breaks_width("2 years"), 
         #   labels = scales::label_date("'%y")
         # ) + 
-        scale_color_brewer(palette = "Set1") + 
         geom_bar(
           alpha = 0.5,
           stat = "identity",
           # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
           position = position_dodge()
         ) + 
+        scale_fill_brewer(palette = "Set1") + 
         # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-        ggtitle(paste(str_interp("Top 'X' Dog Breeds By License Registration in Allegheny County Over Time"))) +
+        ggtitle(paste(str_interp("Top ${input$top} Dog Breeds By License Registration in Allegheny County's ${input$zip} Zip Code Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
@@ -454,13 +454,13 @@ server <- function(input, output) {
         #   breaks = scales::breaks_width("2 years"), 
         #   labels = scales::label_date("'%y")
         # ) + 
-        scale_color_brewer(palette = "Set1") + 
         geom_bar(
           alpha = 0.5,
           stat = "identity",
           # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
           position = position_dodge()
         ) + 
+        scale_fill_brewer(palette = "Set1") + 
         # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
         ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
@@ -478,24 +478,26 @@ server <- function(input, output) {
   # I'll probably make them static values of all-time most popular breed, year, and num_dogs
   output$mostPopularBreed1 <- renderValueBox(
     valueBox(
-      paste0(input$breed),
-      "Breed",
+      paste0(mostPopularBreed$breed),
+      str_interp("... is the all-time most popular breed in the county (there are a total of ${mostPopularBreed$num_dogs} individual dogs of this breed in the data set)."),
       icon = icon("list"),
       color = "purple"
-    )
+    ),
   )
+  
   output$mostPopularBreed2 <- renderValueBox(
     valueBox(
-      paste0(input$breed),
-      "Breed",
+      paste0(mostPopularLicense$type),
+      str_interp("... is the all-time most popular dog license in the county (there are a total of ${mostPopularLicense$num_licenses} individual licenses of this kind in the data set)."),
       icon = icon("list"),
       color = "purple"
     )
   )
+  
   output$mostPopularBreed3 <- renderValueBox(
     valueBox(
-      paste0(input$breed),
-      "Breed",
+      paste0(yearWithMostRegistrations$reg_year),
+      str_interp("... was the single year with the most dog license registrations in the county (there were ${yearWithMostRegistrations$num_dogs} total registrations that year)."),
       icon = icon("list"),
       color = "purple"
     )
