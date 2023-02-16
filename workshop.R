@@ -18,14 +18,14 @@ library(lubridate)
 library(vroom)
 
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
-data <- read_csv("dog_licenses.csv") %>%
+data <- read_csv("./dog_licenses.csv") %>%
   mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
   mutate(reg_year = lubridate::year(reg_date))
 
 input = list(
   # Date thresholds
   dates = c("2012-01-01", "2019-12-31"),
-  top = 5,
+  top = 2,
   zip = c(15205),
   type = c("Dog Individual Spayed Female", "Dog Individual Neutered Male"),
   breed = c("BEAGLE", "LABRADOR RETRIEVER")
@@ -38,7 +38,7 @@ dhat <- data %>%
   filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
   # filter(zip %in% input$zip) %>%
   filter(breed %in% input$breed) %>%
-  arrange(reg_year) %>%
+  # arrange(reg_year) %>%
   group_by(reg_year, breed) %>%
   summarize(n = n()) %>%
   rename("num_dogs" = n)
