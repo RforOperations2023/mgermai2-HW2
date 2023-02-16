@@ -26,13 +26,12 @@ data <- read_csv("dog_licenses.csv") %>%
 # ui stuff goes here
 ui <- dashboardPage(
   dashboardHeader(
-    title = "Allegheny County Dog Licenses"
+    title = "Allegheny County Dog Licenses",
+    titleWidth = 300
   ),
   dashboardSidebar(
     
     sidebarMenu(
-      
-      # helpText("TABS", width = "100%"),
       
       id = "tabs",
       
@@ -54,8 +53,6 @@ ui <- dashboardPage(
         icon = icon("chart-column")
       ),
       
-      helpText("INPUTS", width = "100%"),
-      
       # pick a date range (corresponds with the registration active date)
       dateRangeInput(
         inputId = "dates",
@@ -67,7 +64,7 @@ ui <- dashboardPage(
       ),
       
       selectizeInput(
-        inputId = "types",
+        inputId = "type",
         label = "Type of License:",
         choices = c(
           "Neutered Male" = "Dog Individual Neutered Male",
@@ -98,6 +95,7 @@ ui <- dashboardPage(
         value = 2,
         min = 1,
         max = 5,
+        # this is funky/does not work in studio, but works in the browser:  https://github.com/rstudio/shiny/issues/3340
         step = 1
         # width = NULL
       ),
@@ -188,7 +186,21 @@ ui <- dashboardPage(
       
       tabItem(
         tabName = "plot3",
-        h2("Plot #3")
+        h2("Plot #3"),
+        fluidRow(
+          box(
+            title = h3(strong("Top Dog Licenses (by Type)")),
+            wdith = 12,
+            br(),
+            # need value box output here
+          )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            plotOutput("topLicenses")
+          )
+        )
       )
       
     )
@@ -233,6 +245,17 @@ server <- function(input, output) {
     print("---dhat2"); return(result);
   })
   
+  # third data set
+  dhat3 <- reactive({
+    result = data %>%
+      filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
+      filter(type %in% input$type) %>%
+      group_by(reg_year, type) %>%
+      summarize(n = n()) %>%
+      rename("num_licenses" = n)
+    print("---dhat3"); return(result);
+  })
+  
   
   output$licensesByBreed <- renderPlot({
     dhat() %>%
@@ -245,77 +268,65 @@ server <- function(input, output) {
       ) +
       xlab("Year of License Registration") +
       ylab("Number of Individual Dogs") +
+      labs(color = "Breed of Dog") +
       geom_line(alpha = 0.5) + 
       geom_point(alpha = 0.5) +
       ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
       theme(plot.title = element_text(hjust = 0.5))
   })
   
+  
   output$topXDogs <- renderPlot({
     dhat2() %>%
       ggplot(
         mapping = aes(
           x = reg_year, 
-          y = num_dogs, 
+          y = num_dogs,
+          fill = breed
           # would definitely be helpful to change the color so it's easier to read
-          fill = breed,
+          # fill = breed,
         )
       ) +
       xlab("Year of License Registration") +
       ylab("Number of Individual Dogs") +
+      labs(fill = "Breed of Dog") +
       geom_bar(
         alpha = 0.5,
         stat = "identity",
         # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
         position = position_dodge()
       ) + 
-      # geom_point(alpha = 0.5) +
       # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-      ggtitle(paste(str_interp("Top 'X' Dog Breeds By Registration Over Time"))) +
+      ggtitle(paste(str_interp("Top 'X' Dog Breeds By License Registration in Allegheny County Over Time"))) +
       theme(plot.title = element_text(hjust = 0.5))
   })
   
   
-  # output$licensesByBreed <- renderPlotly(
-  #   dhat() %>%
-  #     ggplot(
-  #       mapping = aes(
-  #         x = reg_year,
-  #         y = num_dogs,
-  #         color = breed,
-  #       )
-  #     ) +
-  #       geom_line()
-  # )
-  
-  # gets counts of breeds throughout the county over time
-  # dhat <- data %>%
-  #   filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
-  #   # filter(zip %in% input$zip) %>%
-  #   filter(breed %in% input$breed) %>%
-  #   arrange(reg_year) %>%
-  #   group_by(reg_year, breed) %>%
-  #   summarize(n = n()) %>%
-  #   rename("num_dogs" = n)
-  # 
-  # 
-  # # maybe make a new graph for each zip code?
-  # # this will get the top x breeds over a period of time in a single zip code
-  # dhat2 <- data %>%
-  #   filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
-  #   filter(zip %in% input$zip) %>%
-  #   group_by(reg_year, breed) %>%
-  #   summarise(n = n()) %>%
-  #   rename("num_dogs" = n) %>%
-  #   slice_max(order_by = num_dogs, n = input$top)
-  # 
-  # # gets the count of types of licenses throughout the county over time
-  # dhat3 <- data %>%
-  #   filter(reg_date >= input$dates[1], reg_date < input$dates[2] ) %>%
-  #   filter(type %in% input$type) %>%
-  #   group_by(reg_year, type) %>%
-  #   summarize(n = n()) %>%
-  #   rename("num_licenses" = n)
+  output$topLicenses <- renderPlot({
+    dhat3() %>%
+      ggplot(
+        mapping = aes(
+          x = reg_year, 
+          y = num_licenses,
+          fill = type
+          # would definitely be helpful to change the color so it's easier to read
+          # fill = breed,
+        )
+      ) +
+      xlab("Year of License Registration") +
+      ylab("Number of Licenses") +
+      # https://www.geeksforgeeks.org/how-to-change-legend-title-in-ggplot2-in-r/
+      labs(fill = "Type of Dog License") +
+      geom_bar(
+        alpha = 0.5,
+        stat = "identity",
+        # http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization#create-barplots-1
+        position = position_dodge()
+      ) + 
+      # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
+      ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
   
 }
 
