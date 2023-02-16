@@ -16,6 +16,8 @@ library(stringr)
 library(ggplot2)
 library(shinythemes)
 library(RColorBrewer)
+library(scales)
+library(DT)
 
 # create some variables here
 
@@ -165,6 +167,15 @@ ui <- dashboardPage(
             width = 12,
             plotlyOutput("licensesByBreed")
           )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            # data table stuff
+            DT::dataTableOutput(
+              outputId = "licensesByBreedTable",
+            ),
+          )
         )
       ),
       
@@ -184,6 +195,15 @@ ui <- dashboardPage(
             width = 12,
             plotlyOutput("topXDogs")
           )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            # data table stuff
+            DT::dataTableOutput(
+              outputId = "topXDogsTable",
+            ),
+          )
         )
       ),
       
@@ -202,6 +222,15 @@ ui <- dashboardPage(
           box(
             width = 12,
             plotlyOutput("topLicenses")
+          )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            # data table stuff
+            DT::dataTableOutput(
+              outputId = "licensesTable",
+            ),
           )
         )
       )
@@ -289,6 +318,12 @@ server <- function(input, output) {
   })
   
   
+  # outputs the data table corresponding to the third plot
+  output$licensesByBreedTable = DT::renderDataTable({
+    DT::datatable(data = dhat())
+  })
+  
+  
   output$topXDogs <- renderPlotly({
     ggplotly(
       dhat2() %>%
@@ -323,6 +358,12 @@ server <- function(input, output) {
   })
   
   
+  # outputs the data table corresponding to the third plot
+  output$topXDogsTable = DT::renderDataTable({
+    DT::datatable(data = dhat2())
+  })
+  
+  
   output$topLicenses <- renderPlotly({
     ggplotly(
       dhat3() %>%
@@ -354,9 +395,15 @@ server <- function(input, output) {
         # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
         ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
-      
     )
   })
+  
+  
+  # outputs the data table corresponding to the third plot
+  output$licensesTables = DT::renderDataTable({
+    DT::datatable(data = dhat3())
+  })
+  
   
 }
 
