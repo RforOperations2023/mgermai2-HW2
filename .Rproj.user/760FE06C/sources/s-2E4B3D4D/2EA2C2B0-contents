@@ -15,6 +15,7 @@ library(plotly)
 library(stringr)
 library(ggplot2)
 library(shinythemes)
+library(RColorBrewer)
 
 # create some variables here
 
@@ -266,9 +267,12 @@ server <- function(input, output) {
           color = breed,
         )
       ) +
-      xlab("Year of License Registration") +
-      ylab("Number of Individual Dogs") +
-      labs(color = "Breed of Dog") +
+      labs(
+        x = "Year of License Registration",
+        y = "Number of Individual Dogs",
+        color = "Breed of Dog"
+      ) +
+      scale_color_brewer(palette = "Set1") + 
       geom_line(alpha = 0.5) + 
       geom_point(alpha = 0.5) +
       ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
@@ -283,13 +287,14 @@ server <- function(input, output) {
           x = reg_year, 
           y = num_dogs,
           fill = breed
-          # would definitely be helpful to change the color so it's easier to read
-          # fill = breed,
         )
       ) +
-      xlab("Year of License Registration") +
-      ylab("Number of Individual Dogs") +
-      labs(fill = "Breed of Dog") +
+      labs(
+        x = "Year of License Registration",
+        y = "Number of Individual Dogs",
+        fill = "Breed of Dog"
+      ) +
+      scale_color_brewer(palette = "Set1") + 
       geom_bar(
         alpha = 0.5,
         stat = "identity",
@@ -309,14 +314,15 @@ server <- function(input, output) {
           x = reg_year, 
           y = num_licenses,
           fill = type
-          # would definitely be helpful to change the color so it's easier to read
-          # fill = breed,
         )
       ) +
-      xlab("Year of License Registration") +
-      ylab("Number of Licenses") +
       # https://www.geeksforgeeks.org/how-to-change-legend-title-in-ggplot2-in-r/
-      labs(fill = "Type of Dog License") +
+      labs(
+        x = "Year of License Registration",
+        y = "Number of Licenses",
+        fill = "Type of Dog License"
+      ) +
+      scale_color_brewer(palette = "Set1") + 
       geom_bar(
         alpha = 0.5,
         stat = "identity",
