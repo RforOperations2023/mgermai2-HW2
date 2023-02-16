@@ -18,20 +18,72 @@ library(lubridate)
 library(vroom)
 
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
-data <- read_csv("./dog_licenses.csv") %>%
-  mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
-  mutate(reg_year = lubridate::year(reg_date))
+data <- read_csv("data/allegheny_county_dog_licenses_2022.csv") %>%
+  mutate(reg_date = as.Date(ValidDate, format="%m-%d-%Y")) %>%
+  mutate(reg_year = lubridate::year(ValidDate))
+
+
+
+
+spaniels <- read_csv("./spaniels.csv")
+# new_spaniels <- spaniels[]
+
+
+
+
+
+
+
+
 
 input = list(
   # Date thresholds
-  dates = c("2012-01-01", "2019-12-31"),
+  dates = c("2012-01-01", "2023-02-16"),
   top = 5,
   zip = c(15205),
   type = c("Dog Individual Spayed Female", "Dog Individual Neutered Male"),
-  breed = c("BEAGLE", "LABRADOR RETRIEVER")
+  breed = c("ENG SPRINGER SPANIE")
 )
 
 output = list()
+
+
+spaniels <- data %>%
+  filter(Breed %in% input$breed)
+
+write.csv(
+  spaniels[,-8:-9],
+  file = "spaniels_cleaned.csv",
+  col.names = FALSE,
+  row.names = FALSE,
+  quote = FALSE
+)
+  
+
+
+
+
+  group_by(breed) %>%
+  summarize(n = n()) %>%
+  rename("num_dogs" = n)
+  # slice_max(num_dogs)
+
+
+
+
+straightData <- data %>%
+  group_by(reg_year) %>%
+  summarize(n = n()) %>%
+  rename("num_dogs" = n) %>%
+  slice_max(num_dogs)
+  # summarise(reg_year, max = max(num_dogs))
+  # slice(1)
+
+print(straightData)
+  
+
+
+
 
 # gets counts of breeds throughout the county over time
 dhat <- data %>%
