@@ -10,14 +10,14 @@
 ####################################
 
 # To Do:
-#   Add in three numeric-based boxes/gauges.
+#   Add in three numeric-based boxes/gauges.  # DONE
 #   Try adding in scales to plots.
 #   Update README.
-#   Verify that data tables utilize reactivity.
+#   Verify that data tables utilize reactivity.  # DONE
 #   Refactor if there's time.
 #   Make sure .gitignore is working.
 #   Add descriptive comments, etc.
-#   Add in "Add S" function, like before.
+#   Add in "Add S" function, like before.  # DONE
 #   Add in Dynamic titles to graphs (zip code, etc)
   
 ####################################
@@ -42,7 +42,8 @@ library(DT)
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
 data <- read_csv("dog_licenses.csv") %>%
   mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
-  mutate(reg_year = lubridate::year(reg_date))
+  mutate(reg_year = lubridate::year(reg_date)) %>%
+  na.omit()
 
 
 yearWithMostRegistrations <- data %>%
@@ -319,6 +320,17 @@ server <- function(input, output) {
   # 3. Count of individual types of licenses over time -- line graph
   #    (user selects the years and the types of licenses)
   
+  
+  ### helper function to add an "s" in the plot titles when needed ###
+  add_s <- function(number) {
+    if (number > 1) {
+      return("s")
+    } else {
+      return("")
+    }
+  }
+  
+  
   # first data set
   dhat <- reactive({
     result = data %>%
@@ -421,7 +433,7 @@ server <- function(input, output) {
         ) + 
         scale_fill_brewer(palette = "Set1") + 
         # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-        ggtitle(paste(str_interp("Top ${input$top} Dog Breeds By License Registration in Allegheny County's ${input$zip} Zip Code Over Time"))) +
+        ggtitle(paste(str_interp("Top ${input$top} Dog Breed${add_s(input$top)} By License Registration in Allegheny County's ${input$zip} Zip Code Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
@@ -451,9 +463,9 @@ server <- function(input, output) {
         ) +
         # scale_x_date(
         #   NULL,
-        #   breaks = scales::breaks_width("2 years"), 
-        #   labels = scales::label_date("'%y")
-        # ) + 
+        #   breaks = scales::breaks_width("2 years"),
+        #   # labels = scales::label_date("'%y")
+        # ) +
         geom_bar(
           alpha = 0.5,
           stat = "identity",
@@ -462,7 +474,7 @@ server <- function(input, output) {
         ) + 
         scale_fill_brewer(palette = "Set1") + 
         # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-        ggtitle(paste(str_interp("Top Dog License Types in Allegheny County Over Time"))) +
+        ggtitle(paste(str_interp("Dog License Types in Allegheny County Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
@@ -478,7 +490,7 @@ server <- function(input, output) {
   # I'll probably make them static values of all-time most popular breed, year, and num_dogs
   output$mostPopularBreed1 <- renderValueBox(
     valueBox(
-      paste0(mostPopularBreed$breed),
+      h4(paste0(mostPopularBreed$breed)),
       str_interp("... is the all-time most popular breed in the county (there are a total of ${mostPopularBreed$num_dogs} individual dogs of this breed in the data set)."),
       icon = icon("list"),
       color = "purple"
@@ -487,7 +499,7 @@ server <- function(input, output) {
   
   output$mostPopularBreed2 <- renderValueBox(
     valueBox(
-      paste0(mostPopularLicense$type),
+      h4(paste0(mostPopularLicense$type)),
       str_interp("... is the all-time most popular dog license in the county (there are a total of ${mostPopularLicense$num_licenses} individual licenses of this kind in the data set)."),
       icon = icon("list"),
       color = "purple"
@@ -496,7 +508,7 @@ server <- function(input, output) {
   
   output$mostPopularBreed3 <- renderValueBox(
     valueBox(
-      paste0(yearWithMostRegistrations$reg_year),
+      h4(paste0(yearWithMostRegistrations$reg_year)),
       str_interp("... was the single year with the most dog license registrations in the county (there were ${yearWithMostRegistrations$num_dogs} total registrations that year)."),
       icon = icon("list"),
       color = "purple"
