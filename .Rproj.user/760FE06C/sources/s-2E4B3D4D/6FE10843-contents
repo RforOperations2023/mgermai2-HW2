@@ -19,8 +19,12 @@ library(vroom)
 
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
 data <- read_csv("data/allegheny_county_dog_licenses_2022.csv") %>%
-  mutate(reg_date = as.Date(ValidDate, format="%m-%d-%Y")) %>%
-  mutate(reg_year = as.Date(ValidDate, format="%Y"))
+  mutate(reg_year = as.Date(ValidDate, format="%m-%d-%Y")) %>%
+  mutate(reg_year = format(as.Date(data$reg_year, format="%m-%d-%Y"), "%Y"))
+  
+
+  # mutate(reg_year = as.Date(ValidDate, format="%Y")) %>%
+  
 
 
 

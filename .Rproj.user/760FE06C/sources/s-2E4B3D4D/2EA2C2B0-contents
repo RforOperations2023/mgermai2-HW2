@@ -40,9 +40,14 @@ library(DT)
 # create some variables here
 
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
+# data <- read_csv("dog_licenses.csv") %>%
+#   mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
+#   mutate(reg_year = lubridate::year(reg_date)) %>%
+#   na.omit()
+
 data <- read_csv("dog_licenses.csv") %>%
-  mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
-  mutate(reg_year = lubridate::year(reg_date)) %>%
+  mutate(reg_year = as.Date(ValidDate, format="%m-%d-%Y")) %>%
+  mutate(reg_year = format(as.Date(data$reg_year, format="%m-%d-%Y"), "%Y")) %>%
   na.omit()
 
 
