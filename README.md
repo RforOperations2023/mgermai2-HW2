@@ -27,8 +27,16 @@ Include at least:
 
 ## Data Source
 
-TBD
+The data source I used is once again courtesy of the [Western Pennsylvania Regional Data Center](http://www.wprdc.org/).
+
+The specific dataset I used (along with its dictionary) is [here](https://data.wprdc.org/dataset/allegheny-county-dog-licenses).
+
+Since combining all of the files proved to be too large for github, I cleaned the data so that `dog_licenses.csv` only contains data from the years 2012 through 2022 of 20 selected dog breeds.
 
 ## Improvements I Would Make in the Future
 
-TBD
+Given more time, there are a few improvements I would make:
+
+* For the `Top Dog Breeds by Zip Code` plot, I would dynamically make new plots for each zip code that the user selected.  For example, I the single plot that currently displays is data from a single user-input zip code.  This improvement would make it so that a user could select multiple zip codes, and a plot would dynamically generate on the page for each zip code, up to a certain amount.
+* I would implement the [scales](https://scales.r-lib.org/) package, particularly on the x-axes that involves years.
+* I would implement dynamic numeric-based boxes/gauges, rather than the static ones that are currently in the app.
