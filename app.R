@@ -75,10 +75,12 @@ ui <- dashboardPage(
   # the title/heading that appears in the upper left of the app
   dashboardHeader(
     title = "Allegheny County Dog Licenses",
-    titleWidth = 300
+    titleWidth = 400
   ),
   
   dashboardSidebar(
+    
+    width = 400,
     
     sidebarMenu(
       
