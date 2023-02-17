@@ -2,7 +2,7 @@
 
 ## Live Link
 
-TBD
+You can view the live app [here](https://mgermaine93.shinyapps.io/mgermai2-HW2/).
 
 ## General Description
 
@@ -21,7 +21,7 @@ Include at least:
 * Three (3) single numeric based boxes/gauges
 * One (1) datatable
 * Three (3) interactive and reactively responsive charts.
-* These elements should be places throughout a dashboard with at least three (3) pages or tabs with an analytical themes or question about the data.
+* These elements should be placed throughout a dashboard with at least three (3) pages or tabs with analytical themes or questions about the data.
 * On the server side your plots and tables must utilize the reactive function for any and all datasets.
 * Your final app must work when deployed to shinyapps.io.
 
@@ -38,5 +38,5 @@ Since combining all of the files proved to be too large for github, I cleaned th
 Given more time, there are a few improvements I would make:
 
 * For the `Top Dog Breeds by Zip Code` plot, I would dynamically make new plots for each zip code that the user selected.  For example, I the single plot that currently displays is data from a single user-input zip code.  This improvement would make it so that a user could select multiple zip codes, and a plot would dynamically generate on the page for each zip code, up to a certain amount.
-* I would implement the [scales](https://scales.r-lib.org/) package, particularly on the x-axes that involves years.
+* I would implement the [scales](https://scales.r-lib.org/) package, particularly on the x-axes that involve years.
 * I would implement dynamic numeric-based boxes/gauges, rather than the static ones that are currently in the app.
