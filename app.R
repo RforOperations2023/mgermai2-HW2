@@ -1,3 +1,7 @@
+####################################
+#
+# Observations on Allegheny County Dog License Registrations Over Time for 20 Selected Breeds
+# By:  Matt Germaine
 #
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
@@ -6,7 +10,6 @@
 #
 #    http://shiny.rstudio.com/
 #
-
 ####################################
 
 # To Do:
@@ -18,11 +21,9 @@
 #   Make sure .gitignore is working.
 #   Add descriptive comments, etc.
 #   Add in "Add S" function, like before.  # DONE
-#   Add in Dynamic titles to graphs (zip code, etc)
+#   Add in Dynamic titles to graphs (zip code, etc)  # DONE
   
 ####################################
-
-
 
 # load in the libraries I need
 library(shiny)
@@ -37,20 +38,14 @@ library(RColorBrewer)
 library(scales)
 library(DT)
 
-# create some variables here
 
 # https://stackoverflow.com/questions/69084375/extract-month-and-year-from-datetime-in-r
-# data <- read_csv("dog_licenses.csv") %>%
-#   mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
-#   mutate(reg_year = lubridate::year(reg_date)) %>%
-#   na.omit()
-
 data <- read_csv("dog_licenses.csv") %>%
-  mutate(reg_year = as.Date(ValidDate, format="%m-%d-%Y")) %>%
-  mutate(reg_year = format(as.Date(data$reg_year, format="%m-%d-%Y"), "%Y")) %>%
+  mutate(reg_date = as.Date(reg_date, format="%m-%d-%Y")) %>%
+  mutate(reg_year = lubridate::year(reg_date)) %>%
   na.omit()
 
-
+# these are the three values that display in the value boxes, one value per box
 yearWithMostRegistrations <- data %>%
   group_by(reg_year) %>%
   summarize(n = n()) %>%
@@ -75,6 +70,8 @@ mostPopularBreed <- data %>%
 # ui stuff goes here
 ui <- dashboardPage(
   
+  skin = "blue",
+  
   # the title/heading that appears in the upper left of the app
   dashboardHeader(
     title = "Allegheny County Dog Licenses",
@@ -92,7 +89,7 @@ ui <- dashboardPage(
       menuItem(
         "Individual Breeds", 
         tabName = "plot1",
-        icon = icon("chart-column")
+        icon = icon("chart-line")
       ),
       
       # the second "page" of the app, seen in the upper left of the app
@@ -106,7 +103,7 @@ ui <- dashboardPage(
       # the third "page" of the app, seen in the upper left of the app
       # it corresponds with the tabItem that has the same tabName value as this one
       menuItem(
-        "Licenses", 
+        "Types of Licenses", 
         tabName = "plot3",
         icon = icon("chart-column")
       ),
@@ -164,16 +161,12 @@ ui <- dashboardPage(
         # width = NULL
       ),
       
-      # pick a zip code, or two, or three, or...
-      # might remove later
+      # pick a zip code
       selectInput(
         inputId = "zip",
         label = "Owner Zip Code",
         choices = unique(data$zip),
         selected = "15205",
-        # multiple = TRUE,
-        # selectize = TRUE,
-        # options = list(create = FALSE)
       ),
       
       # pick some breeds
@@ -223,9 +216,9 @@ ui <- dashboardPage(
         
         # second row is value boxes, value boxes go here
         fluidRow(
-          valueBoxOutput("mostPopularBreed1"),
-          valueBoxOutput("mostPopularBreed2"),
-          valueBoxOutput("mostPopularBreed3")
+          valueBoxOutput("mostPopularBreed"),
+          valueBoxOutput("mostPopularLicense"),
+          valueBoxOutput("mostPopularYear")
         ),
         
         # third row is the actual plot
@@ -280,14 +273,7 @@ ui <- dashboardPage(
         tabName = "plot3",
         
         # first row is the name of the page
-        h2("Licenses"),
-        
-        # # second row is value boxes, value boxes go here
-        # fluidRow(
-        #   valueBoxOutput("mostPopularBreed1"),
-        #   valueBoxOutput("mostPopularBreed2"),
-        #   valueBoxOutput("mostPopularBreed3")
-        # ),
+        h2("Types of Licenses"),
         
         # third row is the actual plot
         fluidRow(
@@ -307,23 +293,13 @@ ui <- dashboardPage(
             ),
           )
         )
-        
       )
     )
   )
 )
 
+
 server <- function(input, output) {
-  # TBD
-  #
-  # okay, so here are some charts I'm thinking of making:
-  #
-  # 1. Top "X" breeds by user-input zip code -- bar graph
-  #    (user selects the "X" breeds and the zip code(s))
-  # 2. Count of "Y" Breeds over time (popularity, etc.) -- line graph
-  #    (user selects the years and the breeds)
-  # 3. Count of individual types of licenses over time -- line graph
-  #    (user selects the years and the types of licenses)
   
   
   ### helper function to add an "s" in the plot titles when needed ###
@@ -375,6 +351,7 @@ server <- function(input, output) {
   })
   
   
+  # first plot
   output$licensesByBreed <- renderPlotly({
     ggplotly(
       dhat() %>%
@@ -390,26 +367,22 @@ server <- function(input, output) {
           y = "Number of Individual Dogs",
           color = "Breed of Dog"
         ) +
-        # scale_x_date(
-        #   NULL,
-        #   breaks = scales::breaks_width("2 years"), 
-        #   labels = scales::label_date("'%y")
-        # ) + 
         scale_color_brewer(palette = "Set1") + 
         geom_line(alpha = 0.5) + 
         geom_point(alpha = 0.5) +
-        ggtitle(paste(str_interp("Allegheny County Dog License Registration Over Time (by Breed)"))) +
+        ggtitle(paste(str_interp("Allegheny County Dog License Registrations Over Time (by Breed)"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
   
   
-  # outputs the data table corresponding to the third plot
+  # outputs the data table corresponding to the first plot
   output$licensesByBreedTable = DT::renderDataTable({
     DT::datatable(data = dhat())
   })
   
   
+  # second plot
   output$topXDogs <- renderPlotly({
     ggplotly(
       dhat2() %>%
@@ -425,11 +398,6 @@ server <- function(input, output) {
           y = "Number of Individual Dogs",
           fill = "Breed of Dog"
         ) +
-        # scale_x_date(
-        #   NULL,
-        #   breaks = scales::breaks_width("2 years"), 
-        #   labels = scales::label_date("'%y")
-        # ) + 
         geom_bar(
           alpha = 0.5,
           stat = "identity",
@@ -437,19 +405,19 @@ server <- function(input, output) {
           position = position_dodge()
         ) + 
         scale_fill_brewer(palette = "Set1") + 
-        # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
-        ggtitle(paste(str_interp("Top ${input$top} Dog Breed${add_s(input$top)} By License Registration in Allegheny County's ${input$zip} Zip Code Over Time"))) +
+        ggtitle(paste(str_interp("Top ${input$top} Dog Breed${add_s(input$top)} By License Registration in Allegheny County's <b>${input$zip}</b> Zip Code Over Time (By Year)"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
   })
 
   
-  # outputs the data table corresponding to the third plot
+  # outputs the data table corresponding to the second plot
   output$topXDogsTable = DT::renderDataTable({
     DT::datatable(data = dhat2())
   })
   
   
+  # third plot
   output$topLicenses <- renderPlotly({
     ggplotly(
       dhat3() %>%
@@ -466,11 +434,6 @@ server <- function(input, output) {
           y = "Number of Licenses",
           fill = "Type of Dog License"
         ) +
-        # scale_x_date(
-        #   NULL,
-        #   breaks = scales::breaks_width("2 years"),
-        #   # labels = scales::label_date("'%y")
-        # ) +
         geom_bar(
           alpha = 0.5,
           stat = "identity",
@@ -478,7 +441,6 @@ server <- function(input, output) {
           position = position_dodge()
         ) + 
         scale_fill_brewer(palette = "Set1") + 
-        # MAKE SURE TO ADD THE "ADD_S" FUNCTION IN HERE
         ggtitle(paste(str_interp("Dog License Types in Allegheny County Over Time"))) +
         theme(plot.title = element_text(hjust = 0.5))
     )
@@ -490,32 +452,32 @@ server <- function(input, output) {
     DT::datatable(data = dhat3())
   })
   
-  # the exact same box repeated three times, I know.
-  # but this is a placeholder for now.
-  # I'll probably make them static values of all-time most popular breed, year, and num_dogs
-  output$mostPopularBreed1 <- renderValueBox(
+  # first static value box
+  output$mostPopularBreed <- renderValueBox(
     valueBox(
       h4(paste0(mostPopularBreed$breed)),
       str_interp("... is the all-time most popular breed in the county (there are a total of ${mostPopularBreed$num_dogs} individual dogs of this breed in the data set)."),
-      icon = icon("list"),
+      icon = icon("dog"),
       color = "purple"
     ),
   )
   
-  output$mostPopularBreed2 <- renderValueBox(
+  # second static value box
+  output$mostPopularLicense <- renderValueBox(
     valueBox(
       h4(paste0(mostPopularLicense$type)),
       str_interp("... is the all-time most popular dog license in the county (there are a total of ${mostPopularLicense$num_licenses} individual licenses of this kind in the data set)."),
-      icon = icon("list"),
+      icon = icon("id-card"),
       color = "purple"
     )
   )
   
-  output$mostPopularBreed3 <- renderValueBox(
+  # third static value box
+  output$mostPopularYear <- renderValueBox(
     valueBox(
       h4(paste0(yearWithMostRegistrations$reg_year)),
       str_interp("... was the single year with the most dog license registrations in the county (there were ${yearWithMostRegistrations$num_dogs} total registrations that year)."),
-      icon = icon("list"),
+      icon = icon("calendar"),
       color = "purple"
     )
   )
@@ -523,16 +485,3 @@ server <- function(input, output) {
 
 # run the application 
 shinyApp(ui = ui, server = server)
-
-
-# IDEAS FOR CHARTS TO MAKE
-
-# Color of dog
-# Count of each breed by year (bar plot)
-# Count of each breed (bar plot)
-# Count of each breed by zip code (bar plot)
-# Pre-process the data
-
-
-# look into ggplotly again
-# ignore any warnings whenever ggplot says it doesn't recognize any plotly commands
